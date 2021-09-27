@@ -1,4 +1,4 @@
-package exceptions;
+package model.exception;
 
 public class NoPassengersException extends SimulatorException{
 

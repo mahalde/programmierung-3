@@ -1,18 +1,19 @@
-package simulator;
+package model;
 
-import exceptions.IllegalMoveException;
-import exceptions.IllegalSizeException;
-import exceptions.NoPassengersException;
-import exceptions.OccupiedTileException;
-import exceptions.OutOfBoundsException;
-import exceptions.SimulatorException;
+import model.exception.IllegalMoveException;
+import model.exception.IllegalSizeException;
+import model.exception.NoPassengersException;
+import model.exception.OccupiedTileException;
+import model.exception.OutOfBoundsException;
+import model.exception.SimulatorException;
 
 import java.util.Arrays;
+import java.util.Observable;
 
 /**
  * Contains methods and fields for the whole territory
  */
-public class Territory {
+public class Territory extends Observable {
 
     private static final int THUNDERSTORM = -1;
     private static final int CLEAR_TILE = 0;
@@ -28,10 +29,6 @@ public class Territory {
 
         createNewTiles();
         this.plane = new Plane(this);
-
-        setThunderstorm(2, 2);
-        setThunderstorm(1, 0);
-        setPassenger(3, 0, 12);
     }
 
     private void createNewTiles() {
@@ -70,6 +67,9 @@ public class Territory {
 
         this.plane.setX(x);
         this.plane.setY(y);
+
+        this.setChanged();
+        this.notifyObservers();
     }
 
     public void setThunderstorm(int x, int y) {
@@ -82,6 +82,9 @@ public class Territory {
         }
 
         tiles[y][x] = THUNDERSTORM;
+
+        this.setChanged();
+        this.notifyObservers();
     }
 
     public void setPassenger(int x, int y, int amount) {
@@ -96,12 +99,18 @@ public class Territory {
         }
 
         tiles[y][x] = amount;
+
+        this.setChanged();
+        this.notifyObservers();
     }
 
     public void clearTile(int x, int y) {
         checkIfOutOfBounds(x, y);
 
         tiles[y][x] = CLEAR_TILE;
+
+        this.setChanged();
+        this.notifyObservers();
     }
 
     public void changeSize(int newWidth, int newHeight) {
@@ -131,6 +140,9 @@ public class Territory {
         tiles = newTiles;
         this.width = newWidth;
         this.height = newHeight;
+
+        this.setChanged();
+        this.notifyObservers();
     }
 
     private void checkIfOutOfBounds(int x, int y) {
@@ -165,6 +177,9 @@ public class Territory {
             default:
                 throw new SimulatorException("This should absolutely not happen");
         }
+
+        this.setChanged();
+        this.notifyObservers();
     }
 
     private void throwIllegalMoveIfNotFreeInFrontOfPlane(int x, int y) {
@@ -190,6 +205,9 @@ public class Territory {
             default:
                 throw new SimulatorException("This should absolutely not happen");
         }
+
+        this.setChanged();
+        this.notifyObservers();
     }
 
     public void boardOn(int x, int y) {
@@ -199,6 +217,9 @@ public class Territory {
 
         tiles[y][x]--;
         this.plane.setNumberOfPassengers(this.plane.getNumberOfPassengers() + 1);
+
+        this.setChanged();
+        this.notifyObservers();
     }
 
     public void boardOff(int x, int y) {
@@ -209,6 +230,9 @@ public class Territory {
 
         this.plane.setNumberOfPassengers(numberOfPassengers - 1);
         tiles[y][x]++;
+
+        this.setChanged();
+        this.notifyObservers();
     }
 
     public boolean freeInFrontOfPlane(int x, int y) {
@@ -247,5 +271,23 @@ public class Territory {
 
     public boolean isThunderstorm(int x, int y) {
         return tiles[y][x] == THUNDERSTORM;
+    }
+
+    public static class Tile {
+        private final int x;
+        private final int y;
+
+        public Tile(int x, int y) {
+            this.x = x;
+            this.y = y;
+        }
+
+        public int getX() {
+            return x;
+        }
+
+        public int getY() {
+            return y;
+        }
     }
 }

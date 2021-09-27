@@ -1,4 +1,4 @@
-package cmd;
+package utils;
 
 import javafx.scene.control.Control;
 import javafx.scene.control.MenuItem;
@@ -8,9 +8,9 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCombination;
 
 /**
- * Contains utility functions for the cmd.FlightSimulator project
+ * Contains utility functions for the FlightSimulator project
  */
-public class Utils {
+public class ViewUtils {
 
     /**
      * Adds an Accelerator to the given menu item

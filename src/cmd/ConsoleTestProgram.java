@@ -1,8 +1,8 @@
 package cmd;
 
-import exceptions.SimulatorException;
-import simulator.Plane;
-import simulator.Territory;
+import model.exception.SimulatorException;
+import model.Plane;
+import model.Territory;
 
 public class ConsoleTestProgram {
 

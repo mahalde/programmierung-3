@@ -1,6 +1,8 @@
-package cmd;
+package view;
 
-import javafx.application.Application;
+import controller.ButtonClickEventHandler;
+import controller.ChangeSizeEventHandler;
+import controller.PlacingState;
 import javafx.application.Platform;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -16,38 +18,50 @@ import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.Slider;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.Toggle;
+import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.ToolBar;
 import javafx.scene.input.KeyCombination;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import javafx.stage.Stage;
-import simulator.Territory;
-import simulator.TerritoryPane;
+import model.Plane;
+import model.Territory;
+import model.exception.SimulatorException;
+import utils.ViewUtils;
 
-/**
- * The main class for starting the flight simulator software
- */
-public class FlightSimulator extends Application {
+import java.util.Observable;
+import java.util.Observer;
 
-    public static void main(String[] args) {
-        launch(args);
+public class FlightSimulatorScene extends Scene implements Observer {
+
+    private final TerritoryPane territoryPane;
+    private final Territory territory;
+
+    private Label label;
+
+    public FlightSimulatorScene(double width, double height, TerritoryPane territoryPane, Territory territory) {
+        super(new BorderPane(), width, height);
+
+        this.territoryPane = territoryPane;
+        this.territory = territory;
+        populateScene();
     }
 
     @Override
-    public void start(Stage primaryStage) {
-        Scene scene = createScene();
-        primaryStage.setTitle("Java Flugsimulator");
-        primaryStage.setScene(scene);
-        primaryStage.show();
+    public void update(Observable o, Object arg) {
+        if (arg instanceof SimulatorException) {
+            this.label.setText(((SimulatorException) arg).getMessage());
+        }
     }
 
-    private Scene createScene() {
-        BorderPane root = new BorderPane();
+    private void populateScene() {
         MenuBar menuBar = createMenuBar();
 
-        root.setTop(menuBar);
+
+        ((BorderPane) this.getRoot()).setTop(menuBar);
 
         BorderPane contentPane = new BorderPane();
         ToolBar toolBar = createToolbar();
@@ -55,17 +69,15 @@ public class FlightSimulator extends Application {
 
         SplitPane content = createSplitPane();
         contentPane.setCenter(content);
-        content.getItems().get(0).requestFocus();
+        Platform.runLater(() -> content.getItems().get(0).requestFocus());
 
-        Label label = new Label("Herzlich willkommen!");
-        contentPane.setBottom(label);
+        this.label = new Label("Herzlich willkommen!");
+        contentPane.setBottom(this.label);
 
         BorderPane.setAlignment(toolBar, Pos.CENTER_LEFT);
-        BorderPane.setAlignment(label, Pos.CENTER_LEFT);
+        BorderPane.setAlignment(this.label, Pos.CENTER_LEFT);
 
-        root.setCenter(contentPane);
-
-        return new Scene(root, 1200, 800);
+        ((BorderPane) this.getRoot()).setCenter(contentPane);
     }
 
     private MenuBar createMenuBar() {
@@ -84,18 +96,18 @@ public class FlightSimulator extends Application {
         Menu editorMenu = new Menu("_Editor");
 
         MenuItem newItem = new MenuItem("_Neu",
-                Utils.createImage("/resources/New16.gif"));
-        Utils.addAccelerator(newItem, "SHORTCUT+N");
+                ViewUtils.createImage("/resources/New16.gif"));
+        ViewUtils.addAccelerator(newItem, "SHORTCUT+N");
 
         MenuItem openItem = new MenuItem("_Öffnen",
-                Utils.createImage("/resources/Open16.gif"));
-        Utils.addAccelerator(openItem, "SHORTCUT+O");
+                ViewUtils.createImage("/resources/Open16.gif"));
+        ViewUtils.addAccelerator(openItem, "SHORTCUT+O");
 
         MenuItem compileItem = new MenuItem("_Kompilieren");
-        Utils.addAccelerator(compileItem, "SHORTCUT+K");
+        ViewUtils.addAccelerator(compileItem, "SHORTCUT+K");
 
         MenuItem printItem = new MenuItem("_Drucken",
-                Utils.createImage("/resources/Print16.gif"));
+                ViewUtils.createImage("/resources/Print16.gif"));
         printItem.setAccelerator(KeyCombination.valueOf("SHORTCUT+P"));
 
         MenuItem closeItem = new MenuItem("_Beenden");
@@ -143,12 +155,19 @@ public class FlightSimulator extends Application {
 
         MenuItem printItem = new MenuItem("_Drucken");
         MenuItem changeSizeItem = new MenuItem("_Größe ändern");
+        changeSizeItem.setOnAction(new ChangeSizeEventHandler<>(territory));
 
         ToggleGroup placeSomethingGroup = new ToggleGroup();
-        RadioMenuItem placePlane = new RadioMenuItem("Flug_zeug platzieren");
-        RadioMenuItem placePassenger = new RadioMenuItem("_Passagier platzieren");
-        RadioMenuItem placeThunderstorm = new RadioMenuItem("Ge_witter platzieren");
-        RadioMenuItem deleteField = new RadioMenuItem("Ka_chel löschen");
+        RadioMenuItem placePlane = new PlacingStateRadioMenuItem("Flug_zeug platzieren", PlacingState.State.PLANE);
+        RadioMenuItem placePassenger = new PlacingStateRadioMenuItem("_Passagier platzieren", PlacingState.State.PASSENGER);
+        RadioMenuItem placeThunderstorm = new PlacingStateRadioMenuItem("Ge_witter platzieren", PlacingState.State.THUNDERSTORM);
+        RadioMenuItem deleteField = new PlacingStateRadioMenuItem("Ka_chel löschen", PlacingState.State.DELETE);
+        placeSomethingGroup.selectedToggleProperty().addListener(((observable, oldValue, newValue) -> {
+            Toggle selectedToggle = placeSomethingGroup.getSelectedToggle();
+            if (selectedToggle != null) {
+                PlacingState.getState().setSelected((PlacingState.State) selectedToggle.getUserData());
+            }
+        }));
 
         placePlane.setToggleGroup(placeSomethingGroup);
         placePassenger.setToggleGroup(placeSomethingGroup);
@@ -173,20 +192,31 @@ public class FlightSimulator extends Application {
 
     private Menu createPlaneMenu() {
         Menu planeMenu = new Menu("_Flugzeug");
+        Plane plane = this.territory.getPlane();
 
         MenuItem passengersInPlaneItem = new MenuItem("_Passagiere im Flugzeug...");
+        passengersInPlaneItem.setOnAction(new ButtonClickEventHandler<>(ButtonClickEventHandler.Action.PASSENGERS_IN_PLANE, plane));
+
 
         MenuItem goLeftItem = new MenuItem("_linksUm");
-        Utils.addAccelerator(goLeftItem, "SHORTCUT+ALT+L");
+        ViewUtils.addAccelerator(goLeftItem, "SHORTCUT+ALT+L");
+        goLeftItem.setOnAction(new ButtonClickEventHandler<>(ButtonClickEventHandler.Action.LEFT, plane));
+
 
         MenuItem forwardItem = new MenuItem("_vor");
-        Utils.addAccelerator(forwardItem, "SHORTCUT+ALT+V");
+        ViewUtils.addAccelerator(forwardItem, "SHORTCUT+ALT+V");
+        forwardItem.setOnAction(new ButtonClickEventHandler<>(ButtonClickEventHandler.Action.FORWARD, plane));
+
 
         MenuItem onboardenItem = new MenuItem("o_nboarden");
-        Utils.addAccelerator(onboardenItem, "SHORTCUT+ALT+N");
+        ViewUtils.addAccelerator(onboardenItem, "SHORTCUT+ALT+N");
+        onboardenItem.setOnAction(new ButtonClickEventHandler<>(ButtonClickEventHandler.Action.BOARD_ON, plane));
+
 
         MenuItem offboardenItem = new MenuItem("off_boarden");
-        Utils.addAccelerator(offboardenItem, "SHORTCUT+ALT+B");
+        ViewUtils.addAccelerator(offboardenItem, "SHORTCUT+ALT+B");
+        offboardenItem.setOnAction(new ButtonClickEventHandler<>(ButtonClickEventHandler.Action.BOARD_OFF, plane));
+
 
         planeMenu.getItems().addAll(
                 passengersInPlaneItem,
@@ -203,16 +233,16 @@ public class FlightSimulator extends Application {
         Menu simulationMenu = new Menu("_Simulation");
 
         MenuItem startItem = new MenuItem("S_tart / Fortsetzen",
-                Utils.createImage("/resources/Play16.gif"));
-        Utils.addAccelerator(startItem, "SHORTCUT+F10");
+                ViewUtils.createImage("/resources/Play16.gif"));
+        ViewUtils.addAccelerator(startItem, "SHORTCUT+F10");
 
         MenuItem pauseItem = new MenuItem("_Pause",
-                Utils.createImage("/resources/Pause16.gif"));
-        Utils.addAccelerator(pauseItem, "SHORTCUT+F11");
+                ViewUtils.createImage("/resources/Pause16.gif"));
+        ViewUtils.addAccelerator(pauseItem, "SHORTCUT+F11");
 
         MenuItem stopItem = new MenuItem("St_op",
-                Utils.createImage("/resources/Stop16.gif"));
-        Utils.addAccelerator(stopItem, "SHORTCUT+F12");
+                ViewUtils.createImage("/resources/Stop16.gif"));
+        ViewUtils.addAccelerator(stopItem, "SHORTCUT+F12");
 
         simulationMenu.getItems().addAll(
                 startItem,
@@ -231,21 +261,39 @@ public class FlightSimulator extends Application {
         Button saveButton = createTooltipButton("/resources/Save24.gif", "Speichern");
         Button compileButton = createTooltipButton("/resources/Compile24.gif", "Kompilieren");
         Button changeTerrainSizeButton = createTooltipButton("/resources/Terrain24.gif", "Größe ändern");
-        Button planeButton = createTooltipButton("/resources/Plane24.png", "Flugzeug platzieren");
-        Button passengerButton = createTooltipButton("/resources/Passenger24.png", "Passagier platzieren");
-        Button thunderstormButton = createTooltipButton("/resources/Thunderstorm24.png", "Gewitter platzieren");
-        Button deleteTileButton = createTooltipButton("/resources/Delete24.gif", "Kachel löschen");
+        changeTerrainSizeButton.addEventHandler(MouseEvent.MOUSE_CLICKED, new ChangeSizeEventHandler<>(territory));
+
+        ToggleGroup toggleGroup = new ToggleGroup();
+        ToggleButton planeButton = createTooltipButton("/resources/Plane24.png", "Flugzeug platzieren", toggleGroup, PlacingState.State.PLANE);
+        ToggleButton passengerButton = createTooltipButton("/resources/Passenger24.png", "Passagier platzieren", toggleGroup, PlacingState.State.PASSENGER);
+        ToggleButton thunderstormButton = createTooltipButton("/resources/Thunderstorm24.png", "Gewitter platzieren", toggleGroup, PlacingState.State.THUNDERSTORM);
+        ToggleButton deleteTileButton = createTooltipButton("/resources/Delete24.gif", "Kachel löschen", toggleGroup, PlacingState.State.DELETE);
+
+        toggleGroup.selectedToggleProperty().addListener(((observable, oldValue, newValue) -> {
+            Toggle selectedToggle = toggleGroup.getSelectedToggle();
+            if (selectedToggle != null) {
+                PlacingState.getState().setSelected((PlacingState.State) selectedToggle.getUserData());
+            }
+        }));
+
+        Plane plane = this.territory.getPlane();
+
         Button passengersInPlaneButton = createTooltipButton("/resources/PlanePassenger24.png", "Passagiere im Flugzeug");
+        passengersInPlaneButton.addEventHandler(MouseEvent.MOUSE_CLICKED, new ButtonClickEventHandler<>(ButtonClickEventHandler.Action.PASSENGERS_IN_PLANE, plane));
         Button planeLeftButton = createTooltipButton("/resources/PlaneLeft24.png", "linksUm");
+        planeLeftButton.addEventHandler(MouseEvent.MOUSE_CLICKED, new ButtonClickEventHandler<>(ButtonClickEventHandler.Action.LEFT, plane));
         Button planeForwardButton = createTooltipButton("/resources/PlaneMove24.png", "vor");
+        planeForwardButton.addEventHandler(MouseEvent.MOUSE_CLICKED, new ButtonClickEventHandler<>(ButtonClickEventHandler.Action.FORWARD, plane));
         Button planePickButton = createTooltipButton("/resources/PlanePick24.png", "onboarden");
+        planePickButton.addEventHandler(MouseEvent.MOUSE_CLICKED, new ButtonClickEventHandler<>(ButtonClickEventHandler.Action.BOARD_ON, plane));
         Button planePutButton = createTooltipButton("/resources/PlanePut24.png", "offboarden");
+        planePutButton.addEventHandler(MouseEvent.MOUSE_CLICKED, new ButtonClickEventHandler<>(ButtonClickEventHandler.Action.BOARD_OFF, plane));
         Button playButton = createTooltipButton("/resources/Play24.gif", "Start / Fortsetzen");
         Button pauseButton = createTooltipButton("/resources/Pause24.gif", "Pause");
         Button stopButton = createTooltipButton("/resources/Stop24.gif", "Stop");
 
         Slider speedSlider = new Slider(0, 100, 0);
-        Utils.addTooltip(speedSlider, "Geschwindigkeit");
+        ViewUtils.addTooltip(speedSlider, "Geschwindigkeit");
 
         toolBar.getItems().addAll(
                 newButton,
@@ -276,10 +324,20 @@ public class FlightSimulator extends Application {
         return toolBar;
     }
 
+    private ToggleButton createTooltipButton(String graphicPath, String tooltipText, ToggleGroup toggleGroup, PlacingState.State state) {
+        PlacingStateToggleButton button = new PlacingStateToggleButton(state);
+        button.setGraphic(ViewUtils.createImage(graphicPath));
+        ViewUtils.addTooltip(button, tooltipText);
+        button.setToggleGroup(toggleGroup);
+        PlacingState.getState().addObserver(button);
+
+        return button;
+    }
+
     private Button createTooltipButton(String graphicPath, String tooltipText) {
         Button button = new Button();
-        button.setGraphic(Utils.createImage(graphicPath));
-        Utils.addTooltip(button, tooltipText);
+        button.setGraphic(ViewUtils.createImage(graphicPath));
+        ViewUtils.addTooltip(button, tooltipText);
 
         return button;
     }
@@ -287,10 +345,10 @@ public class FlightSimulator extends Application {
     private SplitPane createSplitPane() {
         SplitPane splitPane = new SplitPane();
 
-        TextArea textArea = new TextArea("// Hier kannst du Code schreiben");
+        TextArea textArea = new TextArea("void main {\n\t\n}");
         textArea.setStyle("-fx-font-family: 'monospaced';");
 
-        ScrollPane scrollPane = new ScrollPane(new TerritoryPane(new Territory(12, 8)));
+        ScrollPane scrollPane = new ScrollPane(territoryPane);
 
         VBox vBox = new VBox(scrollPane);
         HBox hBox = new HBox(vBox);

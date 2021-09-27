@@ -1,12 +1,17 @@
-package simulator;
+package view;
 
+import controller.TerritoryEventHandler;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Region;
 import javafx.scene.paint.Color;
+import model.Territory;
 
-public class TerritoryPane extends Region {
+import java.util.Observable;
+import java.util.Observer;
+
+public class TerritoryPane extends Region implements Observer {
 
     private static final int IMG_SIZE = 32;
     private static final int CELL_SIZE = 40;
@@ -15,7 +20,7 @@ public class TerritoryPane extends Region {
     private final Territory territory;
     private final Canvas canvas;
 
-    private Image planeImage;
+    private Image[] planeImages;
     private Image thunderstormImage;
     private Image passengerImage;
 
@@ -27,13 +32,45 @@ public class TerritoryPane extends Region {
 
         loadImages();
         draw();
+
+        TerritoryEventHandler territoryEventHandler = new TerritoryEventHandler(territory, this);
+        this.canvas.setOnMousePressed(territoryEventHandler);
+        this.canvas.setOnMouseDragged(territoryEventHandler);
+        this.canvas.setOnMouseReleased(territoryEventHandler);
+    }
+
+    @Override
+    public void update(Observable o, Object arg) {
+        if (o instanceof Territory) {
+            Territory territory = (Territory) o;
+            this.canvas.setWidth(territory.getWidth() * CELL_SIZE);
+            this.canvas.setHeight(territory.getHeight() * CELL_SIZE);
+        }
+
+        clearView();
+        draw();
+    }
+
+    public Territory.Tile getTile(double x, double y) {
+        Territory.Tile tile = new Territory.Tile((int) x / CELL_SIZE, (int) y / CELL_SIZE);
+
+        return (tile.getX() >= 0 && tile.getX() < this.territory.getWidth()
+                        && tile.getY() >= 0 && tile.getY() < this.territory.getHeight()) ? tile : null;
     }
 
     private void loadImages() {
-        this.planeImage = new Image("resources/Plane32.png");
+        this.planeImages = new Image[]{
+                new Image("resources/Plane32North.png"),
+                new Image("resources/Plane32East.png"),
+                new Image("resources/Plane32South.png"),
+                new Image("resources/Plane32West.png"),
+        };
         this.thunderstormImage = new Image("resources/Thunderstorm32.png");
         this.passengerImage = new Image("resources/Passenger32.png");
+    }
 
+    private void clearView() {
+        this.canvas.getGraphicsContext2D().clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
     }
 
     private void draw() {
@@ -56,7 +93,8 @@ public class TerritoryPane extends Region {
                 }
 
                 if (x == planeX && y == planeY) {
-                    gc.drawImage(this.planeImage, x * CELL_SIZE + PADDING, y * CELL_SIZE + PADDING);
+                    Image planeImage = this.planeImages[this.territory.getPlane().getDirection().ordinal()];
+                    gc.drawImage(planeImage, x * CELL_SIZE + PADDING, y * CELL_SIZE + PADDING);
                 } else if (this.territory.isThunderstorm(x, y)) {
                     gc.drawImage(this.thunderstormImage, x * CELL_SIZE + PADDING, y * CELL_SIZE + PADDING);
                 }
