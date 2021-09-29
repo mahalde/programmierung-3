@@ -77,8 +77,8 @@ public class TerritoryPane extends Region implements Observer {
         GraphicsContext gc = this.canvas.getGraphicsContext2D();
         int width = this.territory.getWidth();
         int height = this.territory.getHeight();
-        int planeX = this.territory.getPlane().getX();
-        int planeY = this.territory.getPlane().getY();
+        int planeX = this.territory.getPlaneX();
+        int planeY = this.territory.getPlaneY();
 
         gc.setStroke(Color.BLACK);
         gc.setFill(Color.WHITE);
@@ -93,7 +93,7 @@ public class TerritoryPane extends Region implements Observer {
                 }
 
                 if (x == planeX && y == planeY) {
-                    Image planeImage = this.planeImages[this.territory.getPlane().getDirection().ordinal()];
+                    Image planeImage = this.planeImages[this.territory.getPlaneDirection().ordinal()];
                     gc.drawImage(planeImage, x * CELL_SIZE + PADDING, y * CELL_SIZE + PADDING);
                 } else if (this.territory.isThunderstorm(x, y)) {
                     gc.drawImage(this.thunderstormImage, x * CELL_SIZE + PADDING, y * CELL_SIZE + PADDING);

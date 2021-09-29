@@ -72,6 +72,22 @@ public class Territory extends Observable {
         this.notifyObservers();
     }
 
+    public int getPlaneX() {
+        return this.plane.getX();
+    }
+
+    public int getPlaneY() {
+        return this.plane.getY();
+    }
+
+    public Plane.Direction getPlaneDirection() {
+        return this.plane.getDirection();
+    }
+
+    public int getNumberOfPlanePassengers() {
+        return this.plane.getNumberOfPassengers();
+    }
+
     public void setThunderstorm(int x, int y) {
         checkIfOutOfBounds(x, y);
 

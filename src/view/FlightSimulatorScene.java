@@ -192,30 +192,29 @@ public class FlightSimulatorScene extends Scene implements Observer {
 
     private Menu createPlaneMenu() {
         Menu planeMenu = new Menu("_Flugzeug");
-        Plane plane = this.territory.getPlane();
 
         MenuItem passengersInPlaneItem = new MenuItem("_Passagiere im Flugzeug...");
-        passengersInPlaneItem.setOnAction(new ButtonClickEventHandler<>(ButtonClickEventHandler.Action.PASSENGERS_IN_PLANE, plane));
+        passengersInPlaneItem.setOnAction(new ButtonClickEventHandler<>(ButtonClickEventHandler.Action.PASSENGERS_IN_PLANE, territory));
 
 
         MenuItem goLeftItem = new MenuItem("_linksUm");
         ViewUtils.addAccelerator(goLeftItem, "SHORTCUT+ALT+L");
-        goLeftItem.setOnAction(new ButtonClickEventHandler<>(ButtonClickEventHandler.Action.LEFT, plane));
+        goLeftItem.setOnAction(new ButtonClickEventHandler<>(ButtonClickEventHandler.Action.LEFT, territory));
 
 
         MenuItem forwardItem = new MenuItem("_vor");
         ViewUtils.addAccelerator(forwardItem, "SHORTCUT+ALT+V");
-        forwardItem.setOnAction(new ButtonClickEventHandler<>(ButtonClickEventHandler.Action.FORWARD, plane));
+        forwardItem.setOnAction(new ButtonClickEventHandler<>(ButtonClickEventHandler.Action.FORWARD, territory));
 
 
         MenuItem onboardenItem = new MenuItem("o_nboarden");
         ViewUtils.addAccelerator(onboardenItem, "SHORTCUT+ALT+N");
-        onboardenItem.setOnAction(new ButtonClickEventHandler<>(ButtonClickEventHandler.Action.BOARD_ON, plane));
+        onboardenItem.setOnAction(new ButtonClickEventHandler<>(ButtonClickEventHandler.Action.BOARD_ON, territory));
 
 
         MenuItem offboardenItem = new MenuItem("off_boarden");
         ViewUtils.addAccelerator(offboardenItem, "SHORTCUT+ALT+B");
-        offboardenItem.setOnAction(new ButtonClickEventHandler<>(ButtonClickEventHandler.Action.BOARD_OFF, plane));
+        offboardenItem.setOnAction(new ButtonClickEventHandler<>(ButtonClickEventHandler.Action.BOARD_OFF, territory));
 
 
         planeMenu.getItems().addAll(
@@ -276,18 +275,16 @@ public class FlightSimulatorScene extends Scene implements Observer {
             }
         }));
 
-        Plane plane = this.territory.getPlane();
-
         Button passengersInPlaneButton = createTooltipButton("/resources/PlanePassenger24.png", "Passagiere im Flugzeug");
-        passengersInPlaneButton.addEventHandler(MouseEvent.MOUSE_CLICKED, new ButtonClickEventHandler<>(ButtonClickEventHandler.Action.PASSENGERS_IN_PLANE, plane));
+        passengersInPlaneButton.addEventHandler(MouseEvent.MOUSE_CLICKED, new ButtonClickEventHandler<>(ButtonClickEventHandler.Action.PASSENGERS_IN_PLANE, territory));
         Button planeLeftButton = createTooltipButton("/resources/PlaneLeft24.png", "linksUm");
-        planeLeftButton.addEventHandler(MouseEvent.MOUSE_CLICKED, new ButtonClickEventHandler<>(ButtonClickEventHandler.Action.LEFT, plane));
+        planeLeftButton.addEventHandler(MouseEvent.MOUSE_CLICKED, new ButtonClickEventHandler<>(ButtonClickEventHandler.Action.LEFT, territory));
         Button planeForwardButton = createTooltipButton("/resources/PlaneMove24.png", "vor");
-        planeForwardButton.addEventHandler(MouseEvent.MOUSE_CLICKED, new ButtonClickEventHandler<>(ButtonClickEventHandler.Action.FORWARD, plane));
+        planeForwardButton.addEventHandler(MouseEvent.MOUSE_CLICKED, new ButtonClickEventHandler<>(ButtonClickEventHandler.Action.FORWARD, territory));
         Button planePickButton = createTooltipButton("/resources/PlanePick24.png", "onboarden");
-        planePickButton.addEventHandler(MouseEvent.MOUSE_CLICKED, new ButtonClickEventHandler<>(ButtonClickEventHandler.Action.BOARD_ON, plane));
+        planePickButton.addEventHandler(MouseEvent.MOUSE_CLICKED, new ButtonClickEventHandler<>(ButtonClickEventHandler.Action.BOARD_ON, territory));
         Button planePutButton = createTooltipButton("/resources/PlanePut24.png", "offboarden");
-        planePutButton.addEventHandler(MouseEvent.MOUSE_CLICKED, new ButtonClickEventHandler<>(ButtonClickEventHandler.Action.BOARD_OFF, plane));
+        planePutButton.addEventHandler(MouseEvent.MOUSE_CLICKED, new ButtonClickEventHandler<>(ButtonClickEventHandler.Action.BOARD_OFF, territory));
         Button playButton = createTooltipButton("/resources/Play24.gif", "Start / Fortsetzen");
         Button pauseButton = createTooltipButton("/resources/Pause24.gif", "Pause");
         Button stopButton = createTooltipButton("/resources/Stop24.gif", "Stop");

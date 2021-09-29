@@ -95,8 +95,8 @@ public class ConsoleTestProgram {
         System.out.println("13. Beenden");
 
         int[][] tiles = territory.getTiles();
-        int planeX = plane.getX(), planeY = plane.getY();
-        Plane.Direction planeDirection = plane.getDirection();
+        int planeX = territory.getPlaneX(), planeY = territory.getPlaneY();
+        Plane.Direction planeDirection = territory.getPlaneDirection();
 
         for (int y = 0; y < tiles.length; y++) {
             System.out.print("| ");

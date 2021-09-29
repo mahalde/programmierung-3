@@ -1,11 +1,10 @@
 package controller;
 
-import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.scene.control.Alert;
-import javafx.scene.input.MouseEvent;
 import model.Plane;
+import model.Territory;
 import model.exception.SimulatorException;
 
 public class ButtonClickEventHandler<T extends Event> implements EventHandler<T> {
@@ -19,11 +18,13 @@ public class ButtonClickEventHandler<T extends Event> implements EventHandler<T>
     }
 
     private final Action action;
+    private final Territory territory;
     private final Plane plane;
 
-    public ButtonClickEventHandler(Action action, Plane plane) {
+    public ButtonClickEventHandler(Action action, Territory territory) {
         this.action = action;
-        this.plane = plane;
+        this.territory = territory;
+        this.plane = territory.getPlane();
     }
 
     @Override
@@ -32,7 +33,7 @@ public class ButtonClickEventHandler<T extends Event> implements EventHandler<T>
             case PASSENGERS_IN_PLANE:
                 Alert alert = new Alert(Alert.AlertType.INFORMATION);
                 alert.setHeaderText(null);
-                alert.setContentText("Passagiere im Flugzeug: " + plane.getNumberOfPassengers());
+                alert.setContentText("Passagiere im Flugzeug: " + territory.getNumberOfPlanePassengers());
 
                 alert.showAndWait();
                 break;

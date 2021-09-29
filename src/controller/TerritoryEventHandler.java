@@ -34,9 +34,8 @@ public class TerritoryEventHandler implements EventHandler<MouseEvent> {
     }
 
     private void handleMousePressed(Territory.Tile tile) {
-        Plane plane = this.territory.getPlane();
 
-        if (tile != null && plane.getX() == tile.getX() && plane.getY() == tile.getY()) {
+        if (tile != null && territory.getPlaneX() == tile.getX() && territory.getPlaneY() == tile.getY()) {
             this.isDraggingPlane = true;
         }
     }
