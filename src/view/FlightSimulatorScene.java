@@ -1,7 +1,7 @@
 package view;
 
-import controller.ButtonClickEventHandler;
-import controller.ChangeSizeEventHandler;
+import controller.handler.ButtonClickEventHandler;
+import controller.handler.ChangeSizeEventHandler;
 import controller.PlacingState;
 import javafx.application.Platform;
 import javafx.geometry.Pos;
@@ -27,7 +27,6 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import model.Plane;
 import model.Territory;
 import model.exception.SimulatorException;
 import utils.ViewUtils;

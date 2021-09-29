@@ -1,5 +1,6 @@
-package controller;
+package controller.handler;
 
+import controller.PlacingState;
 import javafx.event.EventHandler;
 import javafx.scene.input.MouseEvent;
 import model.Plane;
