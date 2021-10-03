@@ -14,8 +14,8 @@ import java.util.List;
 
 public class ProgramController {
 
-    private static final String DEFAULT_PROGRAM_NAME = "DefaultFlightSimulator";
     public static final String DIRECTORY_NAME = "programme";
+    private static final String DEFAULT_PROGRAM_NAME = "DefaultFlightSimulator";
     private static final String PREFIX = "public class %s extends model.Plane { public" + System.lineSeparator();
     private static final String DEFAULT_CONTENT = "void main() {" + System.lineSeparator() + "\t" + System.lineSeparator() + "}";
     private static final String POSTFIX = System.lineSeparator() + "}";

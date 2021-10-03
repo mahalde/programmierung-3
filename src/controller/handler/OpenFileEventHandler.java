@@ -19,6 +19,7 @@ public class OpenFileEventHandler<T extends Event> implements EventHandler<T> {
     public void handle(T event) {
         Window window = ProgramController.getFocusedProgram().getStage();
         FileChooser fileChooser = new FileChooser();
+        fileChooser.setInitialDirectory(new File(ProgramController.DIRECTORY_NAME));
 
         File file = fileChooser.showOpenDialog(window);
 
