@@ -141,7 +141,7 @@ public class ConsoleTestProgram {
         int newX = IO.readInt("X-Koordinate?: ");
         int newY = IO.readInt("Y-Koordinate?: ");
 
-        territory.setPlane(newX, newY);
+        territory.setPlaneCoordinates(newX, newY);
     }
 
     private static void placePassenger(Territory territory) {

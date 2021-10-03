@@ -1,8 +1,13 @@
 package view;
 
+import controller.CompileController;
+import controller.PlacingState;
+import controller.ProgramController;
 import controller.handler.ButtonClickEventHandler;
 import controller.handler.ChangeSizeEventHandler;
-import controller.PlacingState;
+import controller.handler.NewWindowEventHandler;
+import controller.handler.OpenFileEventHandler;
+import controller.handler.SaveProgramEventHandler;
 import javafx.application.Platform;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -39,13 +44,17 @@ public class FlightSimulatorScene extends Scene implements Observer {
     private final TerritoryPane territoryPane;
     private final Territory territory;
 
+    private final TextArea textArea;
     private Label label;
 
-    public FlightSimulatorScene(double width, double height, TerritoryPane territoryPane, Territory territory) {
+    public FlightSimulatorScene(double width, double height, TerritoryPane territoryPane, Territory territory, String content) {
         super(new BorderPane(), width, height);
 
         this.territoryPane = territoryPane;
         this.territory = territory;
+        this.textArea = new TextArea();
+        this.textArea.setText(content);
+
         populateScene();
     }
 
@@ -54,6 +63,10 @@ public class FlightSimulatorScene extends Scene implements Observer {
         if (arg instanceof SimulatorException) {
             this.label.setText(((SimulatorException) arg).getMessage());
         }
+    }
+
+    public String getWrittenContent() {
+        return this.textArea.getText();
     }
 
     private void populateScene() {
@@ -97,13 +110,16 @@ public class FlightSimulatorScene extends Scene implements Observer {
         MenuItem newItem = new MenuItem("_Neu",
                 ViewUtils.createImage("/resources/New16.gif"));
         ViewUtils.addAccelerator(newItem, "SHORTCUT+N");
+        newItem.setOnAction(new NewWindowEventHandler<>());
 
         MenuItem openItem = new MenuItem("_Öffnen",
                 ViewUtils.createImage("/resources/Open16.gif"));
         ViewUtils.addAccelerator(openItem, "SHORTCUT+O");
+        openItem.setOnAction(new OpenFileEventHandler<>());
 
         MenuItem compileItem = new MenuItem("_Kompilieren");
         ViewUtils.addAccelerator(compileItem, "SHORTCUT+K");
+        compileItem.setOnAction(e -> CompileController.compileAndReload(territory));
 
         MenuItem printItem = new MenuItem("_Drucken",
                 ViewUtils.createImage("/resources/Print16.gif"));
@@ -111,7 +127,7 @@ public class FlightSimulatorScene extends Scene implements Observer {
 
         MenuItem closeItem = new MenuItem("_Beenden");
         closeItem.setAccelerator(KeyCombination.valueOf("SHORTCUT+Q"));
-        closeItem.setOnAction(e -> Platform.exit());
+        closeItem.setOnAction(e -> ProgramController.closeProgram());
 
         editorMenu.getItems().addAll(
                 newItem,
@@ -129,21 +145,26 @@ public class FlightSimulatorScene extends Scene implements Observer {
     private Menu createTerritoryMenu() {
         Menu territoryMenu = new Menu("_Territorium");
 
-        Menu saveMenu = new Menu("S_peichern");
+//        Menu saveMenu = new Menu("S_peichern");
+//
+//        MenuItem xmlItem = new MenuItem("_XML");
+//        MenuItem jaxbItem = new MenuItem("_JAXB");
+//        MenuItem serialiseItem = new MenuItem("Se_rialisieren");
+//
+//        saveMenu.getItems().addAll(xmlItem, jaxbItem, serialiseItem);
 
-        MenuItem xmlItem = new MenuItem("_XML");
-        MenuItem jaxbItem = new MenuItem("_JAXB");
-        MenuItem serialiseItem = new MenuItem("Se_rialisieren");
+        MenuItem saveMenuItem = new MenuItem("S_peichern");
+        saveMenuItem.setOnAction(new SaveProgramEventHandler<>(textArea));
 
-        saveMenu.getItems().addAll(xmlItem, jaxbItem, serialiseItem);
+//        Menu loadMenu = new Menu("_Laden");
+//
+//        MenuItem loadXmlItem = new MenuItem("_XML");
+//        MenuItem loadJaxbItem = new MenuItem("_JAXB");
+//        MenuItem deserialiseItem = new MenuItem("_Deserialisieren");
+//
+//        loadMenu.getItems().addAll(loadXmlItem, loadJaxbItem, deserialiseItem);
 
-        Menu loadMenu = new Menu("_Laden");
-
-        MenuItem loadXmlItem = new MenuItem("_XML");
-        MenuItem loadJaxbItem = new MenuItem("_JAXB");
-        MenuItem deserialiseItem = new MenuItem("_Deserialisieren");
-
-        loadMenu.getItems().addAll(loadXmlItem, loadJaxbItem, deserialiseItem);
+        MenuItem loadMenuItem = new MenuItem("_Laden");
 
         Menu pictureMenu = new Menu("Als _Bild speichern");
 
@@ -174,8 +195,8 @@ public class FlightSimulatorScene extends Scene implements Observer {
         deleteField.setToggleGroup(placeSomethingGroup);
 
         territoryMenu.getItems().addAll(
-                saveMenu,
-                loadMenu,
+                saveMenuItem,
+                loadMenuItem,
                 pictureMenu,
                 printItem,
                 changeSizeItem,
@@ -255,9 +276,13 @@ public class FlightSimulatorScene extends Scene implements Observer {
         ToolBar toolBar = new ToolBar();
 
         Button newButton = createTooltipButton("/resources/New24.gif", "Neu");
+        newButton.addEventHandler(MouseEvent.MOUSE_CLICKED, new NewWindowEventHandler<>());
         Button openButton = createTooltipButton("/resources/Open24.gif", "Öffnen");
+        openButton.addEventHandler(MouseEvent.MOUSE_CLICKED, new OpenFileEventHandler<>());
         Button saveButton = createTooltipButton("/resources/Save24.gif", "Speichern");
+        saveButton.addEventHandler(MouseEvent.MOUSE_CLICKED, new SaveProgramEventHandler<>(textArea));
         Button compileButton = createTooltipButton("/resources/Compile24.gif", "Kompilieren");
+        compileButton.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> CompileController.compileAndReload(territory));
         Button changeTerrainSizeButton = createTooltipButton("/resources/Terrain24.gif", "Größe ändern");
         changeTerrainSizeButton.addEventHandler(MouseEvent.MOUSE_CLICKED, new ChangeSizeEventHandler<>(territory));
 
@@ -341,8 +366,7 @@ public class FlightSimulatorScene extends Scene implements Observer {
     private SplitPane createSplitPane() {
         SplitPane splitPane = new SplitPane();
 
-        TextArea textArea = new TextArea("void main {\n\t\n}");
-        textArea.setStyle("-fx-font-family: 'monospaced';");
+        this.textArea.setStyle("-fx-font-family: 'monospaced';");
 
         ScrollPane scrollPane = new ScrollPane(territoryPane);
 
@@ -351,7 +375,7 @@ public class FlightSimulatorScene extends Scene implements Observer {
 
         vBox.setAlignment(Pos.CENTER);
         hBox.setAlignment(Pos.CENTER);
-        splitPane.getItems().addAll(textArea, hBox);
+        splitPane.getItems().addAll(this.textArea, hBox);
 
         return splitPane;
     }

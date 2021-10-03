@@ -9,7 +9,7 @@ public class Plane {
         WEST
     }
 
-    private final Territory territory;
+    private Territory territory;
 
     private int numberOfPassengers;
 
@@ -17,9 +17,12 @@ public class Plane {
     private int y;
     private Direction direction = Direction.EAST;
 
+    public Plane() {}
+
     Plane(Territory territory) {
         this.territory = territory;
     }
+
 
     int getX() {
         return x;
@@ -35,6 +38,10 @@ public class Plane {
 
     void setY(int y) {
         this.y = y;
+    }
+
+    void setTerritory(Territory territory) {
+        this.territory = territory;
     }
 
     Direction getDirection() {

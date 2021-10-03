@@ -21,7 +21,7 @@ public class Territory extends Observable {
     private int[][] tiles;
     private int width;
     private int height;
-    private final Plane plane;
+    private Plane plane;
 
     public Territory(int width, int height) {
         this.width = width;
@@ -58,7 +58,23 @@ public class Territory extends Observable {
         return plane;
     }
 
-    public void setPlane(int x, int y) {
+    public void setPlane(Plane plane) {
+        plane.setX(this.plane.getX());
+        plane.setY(this.plane.getY());
+        plane.setDirection(this.plane.getDirection());
+        plane.setNumberOfPassengers(this.plane.getNumberOfPassengers());
+
+        this.plane = plane;
+
+        this.setChanged();
+        this.notifyObservers();
+    }
+
+    public void setPlaneTerritory() {
+        this.plane.setTerritory(this);
+    }
+
+    public void setPlaneCoordinates(int x, int y) {
         checkIfOutOfBounds(x, y);
 
         if (isThunderstorm(x, y)) {

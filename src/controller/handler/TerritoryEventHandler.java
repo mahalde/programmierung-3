@@ -3,7 +3,6 @@ package controller.handler;
 import controller.PlacingState;
 import javafx.event.EventHandler;
 import javafx.scene.input.MouseEvent;
-import model.Plane;
 import model.Territory;
 import model.exception.SimulatorException;
 import view.TerritoryPane;
@@ -44,7 +43,7 @@ public class TerritoryEventHandler implements EventHandler<MouseEvent> {
     private void handleMouseDragged(Territory.Tile tile) {
         if (this.isDraggingPlane && tile != null) {
             this.hasDragged = true;
-            this.territory.setPlane(tile.getX(), tile.getY());
+            this.territory.setPlaneCoordinates(tile.getX(), tile.getY());
         }
     }
 
@@ -57,7 +56,7 @@ public class TerritoryEventHandler implements EventHandler<MouseEvent> {
 
         switch (PlacingState.getState().getSelected()) {
             case PLANE:
-                this.territory.setPlane(tile.getX(), tile.getY());
+                this.territory.setPlaneCoordinates(tile.getX(), tile.getY());
                 break;
             case PASSENGER:
                 int passengers = this.territory.getPassengers(tile.getX(), tile.getY());
