@@ -19,16 +19,15 @@ public class ButtonClickEventHandler<T extends Event> implements EventHandler<T>
 
     private final Action action;
     private final Territory territory;
-    private final Plane plane;
 
     public ButtonClickEventHandler(Action action, Territory territory) {
         this.action = action;
         this.territory = territory;
-        this.plane = territory.getPlane();
     }
 
     @Override
     public void handle(Event event) {
+        Plane plane = territory.getPlane();
         switch (action) {
             case PASSENGERS_IN_PLANE:
                 Alert alert = new Alert(Alert.AlertType.INFORMATION);

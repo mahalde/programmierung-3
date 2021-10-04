@@ -61,7 +61,7 @@ public class Plane {
     }
 
     public void vor() {
-        this.territory.movePlaneForward(x, y);
+        this.territory.movePlaneForward(this.x, this.y);
     }
 
     public void linksUm() {
@@ -69,15 +69,15 @@ public class Plane {
     }
 
     public void onboarden() {
-        this.territory.boardOn(x, y);
+        this.territory.boardOn(this.x, this.y);
     }
 
     public void offboarden() {
-        this.territory.boardOff(x, y);
+        this.territory.boardOff(this.x, this.y);
     }
 
     public boolean vornFrei() {
-        return this.territory.freeInFrontOfPlane(x, y);
+        return this.territory.freeInFrontOfPlane(this.x, this.y);
     }
 
     public boolean keinePassagiere() {
@@ -85,6 +85,6 @@ public class Plane {
     }
 
     public boolean passagierDa() {
-        return this.territory.hasPassenger(x, y);
+        return this.territory.hasPassenger(this.x, this.y);
     }
 }

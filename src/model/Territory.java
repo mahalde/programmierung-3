@@ -65,13 +65,10 @@ public class Territory extends Observable {
         plane.setNumberOfPassengers(this.plane.getNumberOfPassengers());
 
         this.plane = plane;
+        this.plane.setTerritory(this);
 
         this.setChanged();
         this.notifyObservers();
-    }
-
-    public void setPlaneTerritory() {
-        this.plane.setTerritory(this);
     }
 
     public void setPlaneCoordinates(int x, int y) {

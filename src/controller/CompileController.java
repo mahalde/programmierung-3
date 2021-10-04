@@ -71,8 +71,6 @@ public class CompileController {
             Plane plane = (Plane) planeClass.newInstance();
 
             territory.setPlane(plane);
-            territory.setPlaneTerritory();
-
         } catch (Exception e) {
             e.printStackTrace();
             if (showAlert) {
