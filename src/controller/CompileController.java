@@ -1,5 +1,7 @@
 package controller;
 
+import controller.simulation.SimulationManager;
+import controller.simulation.SimulationState;
 import javafx.scene.control.Alert;
 import model.Plane;
 import model.Program;
@@ -24,7 +26,12 @@ public class CompileController {
         }
     }
 
-    public static void compileAndReload(Territory territory) {
+    public static void compileAndReload(Territory territory, SimulationManager simulationManager) {
+        if (simulationManager.getState().getSelected() == SimulationState.State.STARTED) {
+            ViewUtils.showAlert(Alert.AlertType.ERROR, null, null, "Während einer laufenden Simulation kann nicht kompiliert werden!");
+            return;
+        }
+        
         Program program = ProgramController.getFocusedProgram();
         String content = ProgramController.getWrittenContent(program);
 

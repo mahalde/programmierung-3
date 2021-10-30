@@ -1,5 +1,7 @@
 package controller.handler;
 
+import controller.simulation.SimulationManager;
+import controller.simulation.SimulationState;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.scene.control.Alert;

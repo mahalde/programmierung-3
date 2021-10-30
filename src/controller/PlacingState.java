@@ -13,16 +13,8 @@ public class PlacingState extends Observable {
 
     private State selected;
 
-    private static PlacingState state;
-
-    private PlacingState() {
+    public PlacingState() {
         this.setSelected(State.PLANE);
-    }
-
-    public static PlacingState getState() {
-        if (state == null) state = new PlacingState();
-
-        return state;
     }
 
     public void setSelected(State state) {

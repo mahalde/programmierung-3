@@ -1,6 +1,8 @@
 package view;
 
 import controller.PlacingState;
+import controller.ProgramController;
+import javafx.application.Platform;
 import javafx.scene.control.RadioMenuItem;
 
 import java.util.Observable;
@@ -15,7 +17,7 @@ public class PlacingStateRadioMenuItem extends RadioMenuItem implements Observer
 
         this.state = state;
 
-        PlacingState.getState().addObserver(this);
+        Platform.runLater(() -> ProgramController.getPlacingState().addObserver(this));
         this.setUserData(state);
     }
 

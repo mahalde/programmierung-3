@@ -59,27 +59,31 @@ public class Territory extends Observable {
     }
 
     public void setPlane(Plane plane) {
-        plane.setX(this.plane.getX());
-        plane.setY(this.plane.getY());
-        plane.setDirection(this.plane.getDirection());
-        plane.setNumberOfPassengers(this.plane.getNumberOfPassengers());
+        synchronized (this) {
+            plane.setX(this.plane.getX());
+            plane.setY(this.plane.getY());
+            plane.setDirection(this.plane.getDirection());
+            plane.setNumberOfPassengers(this.plane.getNumberOfPassengers());
 
-        this.plane = plane;
-        this.plane.setTerritory(this);
+            this.plane = plane;
+            this.plane.setTerritory(this);
+        }
 
         this.setChanged();
         this.notifyObservers();
     }
 
     public void setPlaneCoordinates(int x, int y) {
-        checkIfOutOfBounds(x, y);
+        synchronized (this) {
+            checkIfOutOfBounds(x, y);
 
-        if (isThunderstorm(x, y)) {
-            throw new OccupiedTileException("Gewitter", x, y);
+            if (isThunderstorm(x, y)) {
+                throw new OccupiedTileException("Gewitter", x, y);
+            }
+
+            this.plane.setX(x);
+            this.plane.setY(y);
         }
-
-        this.plane.setX(x);
-        this.plane.setY(y);
 
         this.setChanged();
         this.notifyObservers();
@@ -102,73 +106,81 @@ public class Territory extends Observable {
     }
 
     public void setThunderstorm(int x, int y) {
-        checkIfOutOfBounds(x, y);
+        synchronized (this) {
+            checkIfOutOfBounds(x, y);
 
-        if (this.plane.getX() == x && this.plane.getY() == y) {
-            throw new OccupiedTileException("Flugzeug", x, y);
-        } else if (tiles[y][x] > 0) {
-            throw new OccupiedTileException("Passagiere", x, y);
+            if (this.plane.getX() == x && this.plane.getY() == y) {
+                throw new OccupiedTileException("Flugzeug", x, y);
+            } else if (tiles[y][x] > 0) {
+                throw new OccupiedTileException("Passagiere", x, y);
+            }
+
+            tiles[y][x] = THUNDERSTORM;
         }
-
-        tiles[y][x] = THUNDERSTORM;
 
         this.setChanged();
         this.notifyObservers();
     }
 
     public void setPassenger(int x, int y, int amount) {
-        if (amount < 1 || amount > 50) {
-            throw new IllegalSizeException(1, 50);
+        synchronized (this) {
+            if (amount < 1 || amount > 50) {
+                throw new IllegalSizeException(1, 50);
+            }
+
+            checkIfOutOfBounds(x, y);
+
+            if (isThunderstorm(x, y)) {
+                throw new OccupiedTileException("Gewitter", x, y);
+            }
+
+            tiles[y][x] = amount;
         }
-
-        checkIfOutOfBounds(x, y);
-
-        if (isThunderstorm(x, y)) {
-            throw new OccupiedTileException("Gewitter", x, y);
-        }
-
-        tiles[y][x] = amount;
 
         this.setChanged();
         this.notifyObservers();
     }
 
     public void clearTile(int x, int y) {
-        checkIfOutOfBounds(x, y);
+        synchronized (this) {
+            checkIfOutOfBounds(x, y);
 
-        tiles[y][x] = CLEAR_TILE;
+            tiles[y][x] = CLEAR_TILE;
+        }
 
         this.setChanged();
         this.notifyObservers();
     }
 
     public void changeSize(int newWidth, int newHeight) {
-        if (newWidth < 1 || newHeight < 1 || newWidth > 100 || newHeight > 100) {
-            throw new IllegalSizeException(1, 100);
-        }
-
-        if (this.plane.getX() >= newWidth || this.plane.getY() >= newHeight) {
-            this.plane.setX(0);
-            this.plane.setY(0);
-
-            if (isThunderstorm(0, 0)) {
-                tiles[0][0] = CLEAR_TILE;
+        synchronized (this) {
+            if (newWidth < 1 || newHeight < 1 || newWidth > 100 || newHeight > 100) {
+                throw new IllegalSizeException(1, 100);
             }
-        }
 
-        int[][] newTiles = new int[newHeight][newWidth];
+            if (this.plane.getX() >= newWidth || this.plane.getY() >= newHeight) {
+                this.plane.setX(0);
+                this.plane.setY(0);
 
-        for (int y = 0; y < newHeight; y++) {
-            try {
-                newTiles[y] = Arrays.copyOf(tiles[y], newWidth);
-            } catch (NullPointerException | ArrayIndexOutOfBoundsException e) {
-                newTiles[y] = new int[newWidth];
+                if (isThunderstorm(0, 0)) {
+                    tiles[0][0] = CLEAR_TILE;
+                }
             }
-        }
 
-        tiles = newTiles;
-        this.width = newWidth;
-        this.height = newHeight;
+            int[][] newTiles = new int[newHeight][newWidth];
+
+            for (int y = 0; y < newHeight; y++) {
+                try {
+                    newTiles[y] = Arrays.copyOf(tiles[y], newWidth);
+                } catch (NullPointerException | ArrayIndexOutOfBoundsException e) {
+                    newTiles[y] = new int[newWidth];
+                }
+            }
+
+            tiles = newTiles;
+            this.width = newWidth;
+            this.height = newHeight;
+        }
 
         this.setChanged();
         this.notifyObservers();
@@ -181,30 +193,31 @@ public class Territory extends Observable {
     }
 
     public void movePlaneForward(int x, int y) {
+        synchronized (this) {
+            switch (this.plane.getDirection()) {
+                case NORTH:
+                    throwIllegalMoveIfNotFreeInFrontOfPlane(x, y);
 
-        switch (this.plane.getDirection()) {
-            case NORTH:
-                throwIllegalMoveIfNotFreeInFrontOfPlane(x, y);
+                    this.plane.setY(y - 1);
+                    break;
+                case EAST:
+                    throwIllegalMoveIfNotFreeInFrontOfPlane(x, y);
 
-                this.plane.setY(y - 1);
-                break;
-            case EAST:
-                throwIllegalMoveIfNotFreeInFrontOfPlane(x, y);
+                    this.plane.setX(x + 1);
+                    break;
+                case SOUTH:
+                    throwIllegalMoveIfNotFreeInFrontOfPlane(x, y);
 
-                this.plane.setX(x + 1);
-                break;
-            case SOUTH:
-                throwIllegalMoveIfNotFreeInFrontOfPlane(x, y);
+                    this.plane.setY(y + 1);
+                    break;
+                case WEST:
+                    throwIllegalMoveIfNotFreeInFrontOfPlane(x, y);
 
-                this.plane.setY(y + 1);
-                break;
-            case WEST:
-                throwIllegalMoveIfNotFreeInFrontOfPlane(x, y);
-
-                this.plane.setX(x - 1);
-                break;
-            default:
-                throw new SimulatorException("This should absolutely not happen");
+                    this.plane.setX(x - 1);
+                    break;
+                default:
+                    throw new SimulatorException("This should absolutely not happen");
+            }
         }
 
         this.setChanged();
@@ -218,21 +231,23 @@ public class Territory extends Observable {
     }
 
     public void turnPlaneLeft() {
-        switch (this.plane.getDirection()) {
-            case NORTH:
-                this.plane.setDirection(Plane.Direction.WEST);
-                break;
-            case EAST:
-                this.plane.setDirection(Plane.Direction.NORTH);
-                break;
-            case SOUTH:
-                this.plane.setDirection(Plane.Direction.EAST);
-                break;
-            case WEST:
-                this.plane.setDirection(Plane.Direction.SOUTH);
-                break;
-            default:
-                throw new SimulatorException("This should absolutely not happen");
+        synchronized (this) {
+            switch (this.plane.getDirection()) {
+                case NORTH:
+                    this.plane.setDirection(Plane.Direction.WEST);
+                    break;
+                case EAST:
+                    this.plane.setDirection(Plane.Direction.NORTH);
+                    break;
+                case SOUTH:
+                    this.plane.setDirection(Plane.Direction.EAST);
+                    break;
+                case WEST:
+                    this.plane.setDirection(Plane.Direction.SOUTH);
+                    break;
+                default:
+                    throw new SimulatorException("This should absolutely not happen");
+            }
         }
 
         this.setChanged();
@@ -240,25 +255,29 @@ public class Territory extends Observable {
     }
 
     public void boardOn(int x, int y) {
-        if (tiles[y][x] <= 0) {
-            throw new NoPassengersException("Das gegebene Feld (%s, %s) hat keine Passagiere", x, y);
-        }
+        synchronized (this) {
+            if (tiles[y][x] <= 0) {
+                throw new NoPassengersException("Das gegebene Feld (%s, %s) hat keine Passagiere", x, y);
+            }
 
-        tiles[y][x]--;
-        this.plane.setNumberOfPassengers(this.plane.getNumberOfPassengers() + 1);
+            tiles[y][x]--;
+            this.plane.setNumberOfPassengers(this.plane.getNumberOfPassengers() + 1);
+        }
 
         this.setChanged();
         this.notifyObservers();
     }
 
     public void boardOff(int x, int y) {
-        int numberOfPassengers = this.plane.getNumberOfPassengers();
-        if (numberOfPassengers <= 0) {
-            throw new NoPassengersException("Im Flugzeug befinden sich keine Passagiere");
-        }
+        synchronized (this) {
+            int numberOfPassengers = this.plane.getNumberOfPassengers();
+            if (numberOfPassengers <= 0) {
+                throw new NoPassengersException("Im Flugzeug befinden sich keine Passagiere");
+            }
 
-        this.plane.setNumberOfPassengers(numberOfPassengers - 1);
-        tiles[y][x]++;
+            this.plane.setNumberOfPassengers(numberOfPassengers - 1);
+            tiles[y][x]++;
+        }
 
         this.setChanged();
         this.notifyObservers();

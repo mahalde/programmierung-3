@@ -1,6 +1,6 @@
 package controller.handler;
 
-import controller.PlacingState;
+import controller.ProgramController;
 import javafx.event.EventHandler;
 import javafx.scene.input.MouseEvent;
 import model.Territory;
@@ -11,7 +11,6 @@ public class TerritoryEventHandler implements EventHandler<MouseEvent> {
 
     private final Territory territory;
     private final TerritoryPane territoryPane;
-
     private boolean isDraggingPlane = false;
     private boolean hasDragged = false;
 
@@ -23,6 +22,8 @@ public class TerritoryEventHandler implements EventHandler<MouseEvent> {
     @Override
     public void handle(MouseEvent event) {
         Territory.Tile tile = territoryPane.getTile(event.getX(), event.getY());
+
+        if (!event.isPrimaryButtonDown()) return;
 
         if (event.getEventType() == MouseEvent.MOUSE_PRESSED) {
             handleMousePressed(tile);
@@ -54,7 +55,7 @@ public class TerritoryEventHandler implements EventHandler<MouseEvent> {
             return;
         }
 
-        switch (PlacingState.getState().getSelected()) {
+        switch (ProgramController.getPlacingState().getSelected()) {
             case PLANE:
                 this.territory.setPlaneCoordinates(tile.getX(), tile.getY());
                 break;

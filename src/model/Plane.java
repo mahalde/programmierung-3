@@ -19,6 +19,8 @@ public class Plane {
 
     public Plane() {}
 
+    public void main() {}
+
     Plane(Territory territory) {
         this.territory = territory;
     }

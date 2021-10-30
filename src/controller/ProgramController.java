@@ -1,5 +1,6 @@
 package controller;
 
+import javafx.application.Platform;
 import javafx.stage.Stage;
 import model.Program;
 import model.Territory;
@@ -38,19 +39,19 @@ public class ProgramController {
         Stage stage = new Stage();
         final ExceptionObservable exceptionObservable = new ExceptionObservable();
 
-        Program program = new Program(name, stage);
+        Territory territory = new Territory(10, 14);
 
+        Program program = new Program(name, stage, territory);
         programs.add(program);
 
-        String content = getContentFromFile(program);
-
-        Territory territory = new Territory(10, 14);
         TerritoryPane territoryPane = new TerritoryPane(territory);
         territory.addObserver(territoryPane);
 
+        String content = getContentFromFile(program);
+
         CompileController.initialCompileAndReload(territory, program);
 
-        FlightSimulatorScene scene = new FlightSimulatorScene(1200, 800, territoryPane, territory, content);
+        FlightSimulatorScene scene = new FlightSimulatorScene(1200, 800, territoryPane, territory, content, program.getSimulationManager());
 
         exceptionObservable.addObserver(scene);
 
@@ -93,9 +94,19 @@ public class ProgramController {
         programs.remove(program);
 
         program.getStage().close();
+
+        if (programs.size() == 0) System.exit(0);
     }
 
     public static String getWrittenContent(Program program) {
         return ((FlightSimulatorScene) program.getStage().getScene()).getWrittenContent();
+    }
+
+    public static PlacingState getPlacingState() {
+        return getFocusedProgram().getPlacingState();
+    }
+
+    public static void setPlacingState(PlacingState.State state) {
+        getFocusedProgram().setPlacingState(state);
     }
 }

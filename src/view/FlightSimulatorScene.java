@@ -3,11 +3,15 @@ package view;
 import controller.CompileController;
 import controller.PlacingState;
 import controller.ProgramController;
+import controller.handler.SpeedChangeHandler;
+import controller.simulation.SimulationState;
 import controller.handler.ButtonClickEventHandler;
 import controller.handler.ChangeSizeEventHandler;
 import controller.handler.NewWindowEventHandler;
 import controller.handler.OpenFileEventHandler;
 import controller.handler.SaveProgramEventHandler;
+import controller.handler.SimulationChangeHandler;
+import controller.simulation.SimulationManager;
 import javafx.application.Platform;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -47,13 +51,17 @@ public class FlightSimulatorScene extends Scene implements Observer {
     private final TextArea textArea;
     private Label label;
 
-    public FlightSimulatorScene(double width, double height, TerritoryPane territoryPane, Territory territory, String content) {
+    private final SimulationManager simulationManager;
+
+    public FlightSimulatorScene(double width, double height, TerritoryPane territoryPane, Territory territory, String content, SimulationManager simulationManager) {
         super(new BorderPane(), width, height);
 
         this.territoryPane = territoryPane;
         this.territory = territory;
         this.textArea = new TextArea();
         this.textArea.setText(content);
+
+        this.simulationManager = simulationManager;
 
         populateScene();
     }
@@ -119,7 +127,7 @@ public class FlightSimulatorScene extends Scene implements Observer {
 
         MenuItem compileItem = new MenuItem("_Kompilieren");
         ViewUtils.addAccelerator(compileItem, "SHORTCUT+K");
-        compileItem.setOnAction(e -> CompileController.compileAndReload(territory));
+        compileItem.setOnAction(e -> CompileController.compileAndReload(territory, simulationManager));
 
         MenuItem printItem = new MenuItem("_Drucken",
                 ViewUtils.createImage("/resources/Print16.gif"));
@@ -145,24 +153,8 @@ public class FlightSimulatorScene extends Scene implements Observer {
     private Menu createTerritoryMenu() {
         Menu territoryMenu = new Menu("_Territorium");
 
-//        Menu saveMenu = new Menu("S_peichern");
-//
-//        MenuItem xmlItem = new MenuItem("_XML");
-//        MenuItem jaxbItem = new MenuItem("_JAXB");
-//        MenuItem serialiseItem = new MenuItem("Se_rialisieren");
-//
-//        saveMenu.getItems().addAll(xmlItem, jaxbItem, serialiseItem);
-
         MenuItem saveMenuItem = new MenuItem("S_peichern");
         saveMenuItem.setOnAction(new SaveProgramEventHandler<>(textArea));
-
-//        Menu loadMenu = new Menu("_Laden");
-//
-//        MenuItem loadXmlItem = new MenuItem("_XML");
-//        MenuItem loadJaxbItem = new MenuItem("_JAXB");
-//        MenuItem deserialiseItem = new MenuItem("_Deserialisieren");
-//
-//        loadMenu.getItems().addAll(loadXmlItem, loadJaxbItem, deserialiseItem);
 
         MenuItem loadMenuItem = new MenuItem("_Laden");
 
@@ -185,7 +177,7 @@ public class FlightSimulatorScene extends Scene implements Observer {
         placeSomethingGroup.selectedToggleProperty().addListener(((observable, oldValue, newValue) -> {
             Toggle selectedToggle = placeSomethingGroup.getSelectedToggle();
             if (selectedToggle != null) {
-                PlacingState.getState().setSelected((PlacingState.State) selectedToggle.getUserData());
+                ProgramController.setPlacingState((PlacingState.State) selectedToggle.getUserData());
             }
         }));
 
@@ -251,17 +243,24 @@ public class FlightSimulatorScene extends Scene implements Observer {
     private Menu createSimulationMenu() {
         Menu simulationMenu = new Menu("_Simulation");
 
-        MenuItem startItem = new MenuItem("S_tart / Fortsetzen",
-                ViewUtils.createImage("/resources/Play16.gif"));
+        ToggleGroup simulationGroup = new ToggleGroup();
+        simulationGroup.selectedToggleProperty().addListener(new SimulationChangeHandler(simulationManager));
+
+        RadioMenuItem startItem = new SimulatorStateRadioMenuItem("S_tart / Fortsetzen",
+                ViewUtils.createImage("/resources/Play16.gif"), SimulationState.State.STARTED, simulationManager);
         ViewUtils.addAccelerator(startItem, "SHORTCUT+F10");
 
-        MenuItem pauseItem = new MenuItem("_Pause",
-                ViewUtils.createImage("/resources/Pause16.gif"));
+        RadioMenuItem pauseItem = new SimulatorStateRadioMenuItem("_Pause",
+                ViewUtils.createImage("/resources/Pause16.gif"), SimulationState.State.PAUSED, simulationManager);
         ViewUtils.addAccelerator(pauseItem, "SHORTCUT+F11");
 
-        MenuItem stopItem = new MenuItem("St_op",
-                ViewUtils.createImage("/resources/Stop16.gif"));
+        RadioMenuItem stopItem = new SimulatorStateRadioMenuItem("St_op",
+                ViewUtils.createImage("/resources/Stop16.gif"), SimulationState.State.STOPPED, simulationManager);
         ViewUtils.addAccelerator(stopItem, "SHORTCUT+F12");
+
+        startItem.setToggleGroup(simulationGroup);
+        pauseItem.setToggleGroup(simulationGroup);
+        stopItem.setToggleGroup(simulationGroup);
 
         simulationMenu.getItems().addAll(
                 startItem,
@@ -282,22 +281,22 @@ public class FlightSimulatorScene extends Scene implements Observer {
         Button saveButton = createTooltipButton("/resources/Save24.gif", "Speichern");
         saveButton.addEventHandler(MouseEvent.MOUSE_CLICKED, new SaveProgramEventHandler<>(textArea));
         Button compileButton = createTooltipButton("/resources/Compile24.gif", "Kompilieren");
-        compileButton.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> CompileController.compileAndReload(territory));
+        compileButton.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> CompileController.compileAndReload(territory, simulationManager));
         Button changeTerrainSizeButton = createTooltipButton("/resources/Terrain24.gif", "Größe ändern");
         changeTerrainSizeButton.addEventHandler(MouseEvent.MOUSE_CLICKED, new ChangeSizeEventHandler<>(territory));
 
-        ToggleGroup toggleGroup = new ToggleGroup();
-        ToggleButton planeButton = createTooltipButton("/resources/Plane24.png", "Flugzeug platzieren", toggleGroup, PlacingState.State.PLANE);
-        ToggleButton passengerButton = createTooltipButton("/resources/Passenger24.png", "Passagier platzieren", toggleGroup, PlacingState.State.PASSENGER);
-        ToggleButton thunderstormButton = createTooltipButton("/resources/Thunderstorm24.png", "Gewitter platzieren", toggleGroup, PlacingState.State.THUNDERSTORM);
-        ToggleButton deleteTileButton = createTooltipButton("/resources/Delete24.gif", "Kachel löschen", toggleGroup, PlacingState.State.DELETE);
+        ToggleGroup placingStateGroup = new ToggleGroup();
+        ToggleButton planeButton = createPlacingTooltipButton("/resources/Plane24.png", "Flugzeug platzieren", placingStateGroup, PlacingState.State.PLANE);
+        ToggleButton passengerButton = createPlacingTooltipButton("/resources/Passenger24.png", "Passagier platzieren", placingStateGroup, PlacingState.State.PASSENGER);
+        ToggleButton thunderstormButton = createPlacingTooltipButton("/resources/Thunderstorm24.png", "Gewitter platzieren", placingStateGroup, PlacingState.State.THUNDERSTORM);
+        ToggleButton deleteTileButton = createPlacingTooltipButton("/resources/Delete24.gif", "Kachel löschen", placingStateGroup, PlacingState.State.DELETE);
 
-        toggleGroup.selectedToggleProperty().addListener(((observable, oldValue, newValue) -> {
-            Toggle selectedToggle = toggleGroup.getSelectedToggle();
+        placingStateGroup.selectedToggleProperty().addListener((observable, oldValue, newValue) -> {
+            Toggle selectedToggle = placingStateGroup.getSelectedToggle();
             if (selectedToggle != null) {
-                PlacingState.getState().setSelected((PlacingState.State) selectedToggle.getUserData());
+                ProgramController.setPlacingState((PlacingState.State) selectedToggle.getUserData());
             }
-        }));
+        });
 
         Button passengersInPlaneButton = createTooltipButton("/resources/PlanePassenger24.png", "Passagiere im Flugzeug");
         passengersInPlaneButton.addEventHandler(MouseEvent.MOUSE_CLICKED, new ButtonClickEventHandler<>(ButtonClickEventHandler.Action.PASSENGERS_IN_PLANE, territory));
@@ -309,11 +308,19 @@ public class FlightSimulatorScene extends Scene implements Observer {
         planePickButton.addEventHandler(MouseEvent.MOUSE_CLICKED, new ButtonClickEventHandler<>(ButtonClickEventHandler.Action.BOARD_ON, territory));
         Button planePutButton = createTooltipButton("/resources/PlanePut24.png", "offboarden");
         planePutButton.addEventHandler(MouseEvent.MOUSE_CLICKED, new ButtonClickEventHandler<>(ButtonClickEventHandler.Action.BOARD_OFF, territory));
-        Button playButton = createTooltipButton("/resources/Play24.gif", "Start / Fortsetzen");
-        Button pauseButton = createTooltipButton("/resources/Pause24.gif", "Pause");
-        Button stopButton = createTooltipButton("/resources/Stop24.gif", "Stop");
 
-        Slider speedSlider = new Slider(0, 100, 0);
+        ToggleGroup simulationStateGroup = new ToggleGroup();
+        ToggleButton playButton = createSimulatorTooltipButton("/resources/Play24.gif", "Start / Fortsetzen", simulationStateGroup, SimulationState.State.STARTED);
+        ToggleButton pauseButton = createSimulatorTooltipButton("/resources/Pause24.gif", "Pause", simulationStateGroup, SimulationState.State.PAUSED);
+        ToggleButton stopButton = createSimulatorTooltipButton("/resources/Stop24.gif", "Stop", simulationStateGroup, SimulationState.State.STOPPED);
+
+        simulationStateGroup.selectedToggleProperty().addListener(new SimulationChangeHandler(simulationManager));
+
+        Platform.runLater(() -> simulationStateGroup.selectToggle(stopButton));
+
+        Slider speedSlider = new Slider(0, 100, SpeedChangeHandler.INITIAL_SPEED);
+        speedSlider.setShowTickLabels(true);
+        speedSlider.valueProperty().addListener(new SpeedChangeHandler(simulationManager));
         ViewUtils.addTooltip(speedSlider, "Geschwindigkeit");
 
         toolBar.getItems().addAll(
@@ -345,12 +352,22 @@ public class FlightSimulatorScene extends Scene implements Observer {
         return toolBar;
     }
 
-    private ToggleButton createTooltipButton(String graphicPath, String tooltipText, ToggleGroup toggleGroup, PlacingState.State state) {
+    private ToggleButton createPlacingTooltipButton(String graphicPath, String tooltipText, ToggleGroup toggleGroup, PlacingState.State state) {
         PlacingStateToggleButton button = new PlacingStateToggleButton(state);
         button.setGraphic(ViewUtils.createImage(graphicPath));
         ViewUtils.addTooltip(button, tooltipText);
         button.setToggleGroup(toggleGroup);
-        PlacingState.getState().addObserver(button);
+        Platform.runLater(() -> ProgramController.getPlacingState().addObserver(button));
+
+        return button;
+    }
+
+    private ToggleButton createSimulatorTooltipButton(String graphicPath, String tooltipText, ToggleGroup toggleGroup, SimulationState.State state) {
+        SimulatorStateToggleButton button = new SimulatorStateToggleButton(state);
+        button.setGraphic(ViewUtils.createImage(graphicPath));
+        ViewUtils.addTooltip(button, tooltipText);
+        button.setToggleGroup(toggleGroup);
+        simulationManager.addObserver(button);
 
         return button;
     }

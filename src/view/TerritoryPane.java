@@ -1,6 +1,9 @@
 package view;
 
+import controller.handler.TerritoryContextMenuHandler;
 import controller.handler.TerritoryEventHandler;
+import controller.simulation.SimulationManager;
+import javafx.application.Platform;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
@@ -37,10 +40,19 @@ public class TerritoryPane extends Region implements Observer {
         this.canvas.setOnMousePressed(territoryEventHandler);
         this.canvas.setOnMouseDragged(territoryEventHandler);
         this.canvas.setOnMouseReleased(territoryEventHandler);
+        this.canvas.setOnContextMenuRequested(new TerritoryContextMenuHandler(territory, this));
     }
 
     @Override
     public void update(Observable o, Object arg) {
+        if (Platform.isFxApplicationThread()) {
+            updateView(o);
+        } else {
+            Platform.runLater(() -> updateView(o));
+        }
+    }
+
+    private void updateView(Observable o) {
         if (o instanceof Territory) {
             Territory territory = (Territory) o;
             this.canvas.setWidth(territory.getWidth() * CELL_SIZE);
@@ -55,7 +67,7 @@ public class TerritoryPane extends Region implements Observer {
         Territory.Tile tile = new Territory.Tile((int) x / CELL_SIZE, (int) y / CELL_SIZE);
 
         return (tile.getX() >= 0 && tile.getX() < this.territory.getWidth()
-                        && tile.getY() >= 0 && tile.getY() < this.territory.getHeight()) ? tile : null;
+                && tile.getY() >= 0 && tile.getY() < this.territory.getHeight()) ? tile : null;
     }
 
     private void loadImages() {
