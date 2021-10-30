@@ -2,6 +2,7 @@ package controller.handler;
 
 import controller.ProgramController;
 import javafx.event.EventHandler;
+import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import model.Territory;
 import model.exception.SimulatorException;
@@ -23,7 +24,7 @@ public class TerritoryEventHandler implements EventHandler<MouseEvent> {
     public void handle(MouseEvent event) {
         Territory.Tile tile = territoryPane.getTile(event.getX(), event.getY());
 
-        if (!event.isPrimaryButtonDown()) return;
+        if (!event.getButton().equals(MouseButton.PRIMARY)) return;
 
         if (event.getEventType() == MouseEvent.MOUSE_PRESSED) {
             handleMousePressed(tile);
@@ -35,7 +36,6 @@ public class TerritoryEventHandler implements EventHandler<MouseEvent> {
     }
 
     private void handleMousePressed(Territory.Tile tile) {
-
         if (tile != null && territory.getPlaneX() == tile.getX() && territory.getPlaneY() == tile.getY()) {
             this.isDraggingPlane = true;
         }
