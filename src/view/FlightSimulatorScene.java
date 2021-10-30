@@ -125,13 +125,14 @@ public class FlightSimulatorScene extends Scene implements Observer {
         ViewUtils.addAccelerator(openItem, "SHORTCUT+O");
         openItem.setOnAction(new OpenFileEventHandler<>());
 
+        MenuItem saveItem = new MenuItem("_Speichern",
+                ViewUtils.createImage("/resources/Save16.gif"));
+        ViewUtils.addAccelerator(saveItem, "SHORTCUT+S");
+        saveItem.setOnAction(new SaveProgramEventHandler<>(textArea));
+
         MenuItem compileItem = new MenuItem("_Kompilieren");
         ViewUtils.addAccelerator(compileItem, "SHORTCUT+K");
         compileItem.setOnAction(e -> CompileController.compileAndReload(territory, simulationManager));
-
-        MenuItem printItem = new MenuItem("_Drucken",
-                ViewUtils.createImage("/resources/Print16.gif"));
-        printItem.setAccelerator(KeyCombination.valueOf("SHORTCUT+P"));
 
         MenuItem closeItem = new MenuItem("_Beenden");
         closeItem.setAccelerator(KeyCombination.valueOf("SHORTCUT+Q"));
@@ -141,8 +142,8 @@ public class FlightSimulatorScene extends Scene implements Observer {
                 newItem,
                 openItem,
                 new SeparatorMenuItem(),
+                saveItem,
                 compileItem,
-                printItem,
                 new SeparatorMenuItem(),
                 closeItem
         );
@@ -153,19 +154,6 @@ public class FlightSimulatorScene extends Scene implements Observer {
     private Menu createTerritoryMenu() {
         Menu territoryMenu = new Menu("_Territorium");
 
-        MenuItem saveMenuItem = new MenuItem("S_peichern");
-        saveMenuItem.setOnAction(new SaveProgramEventHandler<>(textArea));
-
-        MenuItem loadMenuItem = new MenuItem("_Laden");
-
-        Menu pictureMenu = new Menu("Als _Bild speichern");
-
-        MenuItem jpegItem = new MenuItem("JPG");
-        MenuItem pngItem = new MenuItem("PNG");
-
-        pictureMenu.getItems().addAll(jpegItem, pngItem);
-
-        MenuItem printItem = new MenuItem("_Drucken");
         MenuItem changeSizeItem = new MenuItem("_Größe ändern");
         changeSizeItem.setOnAction(new ChangeSizeEventHandler<>(territory));
 
@@ -187,10 +175,6 @@ public class FlightSimulatorScene extends Scene implements Observer {
         deleteField.setToggleGroup(placeSomethingGroup);
 
         territoryMenu.getItems().addAll(
-                saveMenuItem,
-                loadMenuItem,
-                pictureMenu,
-                printItem,
                 changeSizeItem,
                 new SeparatorMenuItem(),
                 placePlane,
