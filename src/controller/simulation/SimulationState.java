@@ -1,5 +1,8 @@
 package controller.simulation;
 
+/**
+ * The state of a simulation, which can be started, stopped, or paused
+ */
 public class SimulationState {
 
     public enum State {

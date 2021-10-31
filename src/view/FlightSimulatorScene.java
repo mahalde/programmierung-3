@@ -43,6 +43,9 @@ import utils.ViewUtils;
 import java.util.Observable;
 import java.util.Observer;
 
+/**
+ * The main simulator scene which includes all other parts like the text area or the territory pane
+ */
 public class FlightSimulatorScene extends Scene implements Observer {
 
     private final TerritoryPane territoryPane;
@@ -69,7 +72,7 @@ public class FlightSimulatorScene extends Scene implements Observer {
     @Override
     public void update(Observable o, Object arg) {
         if (arg instanceof SimulatorException) {
-            this.label.setText(((SimulatorException) arg).getMessage());
+            ViewUtils.runOnPlatform(() -> this.label.setText(((SimulatorException) arg).getMessage()));
         }
     }
 
@@ -367,6 +370,7 @@ public class FlightSimulatorScene extends Scene implements Observer {
     private SplitPane createSplitPane() {
         SplitPane splitPane = new SplitPane();
 
+        // monospaced font for better readability
         this.textArea.setStyle("-fx-font-family: 'monospaced';");
 
         ScrollPane scrollPane = new ScrollPane(territoryPane);

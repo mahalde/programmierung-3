@@ -8,7 +8,7 @@ import model.exception.ProgramAlreadyOpenException;
 import utils.FileUtils;
 
 /**
- * The main class for starting the flight simulator software
+ * The main class for starting the flight simulator software.
  */
 public class FlightSimulator extends Application {
 

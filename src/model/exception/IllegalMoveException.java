@@ -1,5 +1,8 @@
 package model.exception;
 
+/**
+ * Gets thrown on an illegal move by the plane
+ */
 public class IllegalMoveException extends SimulatorException {
 
     public IllegalMoveException() {

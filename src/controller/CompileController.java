@@ -16,8 +16,18 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 
+/**
+ * Contains methods for compiling written code and reloading the plane in the territory.
+ * Acts as a singleton class with exclusively static fields and methods.
+ */
 public class CompileController {
 
+    /**
+     * Compiles and reloads the initial program which gets loaded when the simulator is launched.
+     *
+     * @param territory the territory which should be reloaded
+     * @param program   the program to compile
+     */
     public static void initialCompileAndReload(Territory territory, Program program) {
         boolean success = compile(null, program);
 
@@ -26,12 +36,21 @@ public class CompileController {
         }
     }
 
+    /**
+     * Compiles the currently focused program and reloads the corresponding territory
+     *
+     * @param territory         the given territory
+     * @param simulationManager the simulation manager of the focused simulation
+     */
     public static void compileAndReload(Territory territory, SimulationManager simulationManager) {
         if (simulationManager.getState().getSelected() == SimulationState.State.STARTED) {
-            ViewUtils.showAlert(Alert.AlertType.ERROR, null, null, "Während einer laufenden Simulation kann nicht kompiliert werden!");
+            ViewUtils.showAlert(Alert.AlertType.ERROR,
+                    null,
+                    null,
+                    "Während einer laufenden Simulation kann nicht kompiliert werden!");
             return;
         }
-        
+
         Program program = ProgramController.getFocusedProgram();
         String content = ProgramController.getWrittenContent(program);
 
@@ -56,12 +75,26 @@ public class CompileController {
         }
     }
 
+    /**
+     * Compiles a given file
+     *
+     * @param errStream error stream to give feedback back to the user on failed compilation
+     * @param program   the program which is saved in a file
+     * @return whether the program compiled successfully
+     */
     private static boolean compile(ByteArrayOutputStream errStream, Program program) {
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
 
         return compiler.run(null, null, errStream, program.getFullFileName()) == 0;
     }
 
+    /**
+     * Reloads the plane and places it back in the territory
+     *
+     * @param territory the given territory
+     * @param program   the program from which to load the plane
+     * @param showAlert indicates whether to show an alert on failed instantiation
+     */
     public static void loadAndSetNewPlane(Territory territory, Program program, boolean showAlert) {
         ClassLoader loader;
         try {
@@ -70,7 +103,6 @@ public class CompileController {
             e.printStackTrace();
             return;
         }
-
 
         try {
             Class<?> planeClass = loader.loadClass(program.getName());

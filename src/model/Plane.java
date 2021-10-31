@@ -1,7 +1,14 @@
 package model;
 
+/**
+ * The plane which is shown in the territory.
+ * All methods get delegated to the territory.
+ */
 public class Plane {
 
+    /**
+     * The direction of the plane
+     */
     public enum Direction {
         NORTH,
         EAST,
@@ -17,8 +24,10 @@ public class Plane {
     private int y;
     private Direction direction = Direction.EAST;
 
+    /** Empty construcor so the written code can be compiled successfully */
     public Plane() {}
 
+    /** Empty main method which is invoked by the simulation */
     public void main() {}
 
     Plane(Territory territory) {

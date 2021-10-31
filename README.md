@@ -60,3 +60,8 @@ Passagier im Flugzeug, wird der Wert *false* geliefert.
 - `boolean passagierDa()`: Liefert den Wert *true*, falls sich
 auf der Kachel, auf der sich das Flugzeug befindet, ein Passagier
 befindet. Ist kein Passagier da, wird der Wert *false* geliefert.__
+  
+## Bemerkungen
+In diesem Projekt wurden alle Aufgaben der einzelnen Aufgabenblätter
+bearbeitet. In den einzelnen Klassen gibt es Kommentare sowie JavaDoc,
+die den Code im Genaueren erklären.

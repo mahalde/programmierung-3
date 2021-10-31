@@ -6,6 +6,9 @@ import javafx.scene.control.ToggleButton;
 import java.util.Observable;
 import java.util.Observer;
 
+/**
+ * Custom toggle button to choose the current item to place in the toolbar
+ */
 public class PlacingStateToggleButton extends ToggleButton implements Observer {
 
     private final PlacingState.State state;

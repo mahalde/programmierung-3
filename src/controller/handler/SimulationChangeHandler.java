@@ -6,6 +6,9 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.control.Toggle;
 
+/**
+ * Event handler for the changing of the simulation state (started, paused, stopped)
+ */
 public class SimulationChangeHandler implements ChangeListener<Toggle> {
 
     private final SimulationManager simulationManager;

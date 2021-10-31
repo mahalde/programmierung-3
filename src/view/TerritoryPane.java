@@ -1,15 +1,15 @@
 package view;
 
+import controller.ExceptionObservable;
 import controller.handler.TerritoryContextMenuHandler;
 import controller.handler.TerritoryEventHandler;
-import controller.simulation.SimulationManager;
-import javafx.application.Platform;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Region;
 import javafx.scene.paint.Color;
 import model.Territory;
+import utils.ViewUtils;
 
 import java.util.Observable;
 import java.util.Observer;
@@ -27,7 +27,7 @@ public class TerritoryPane extends Region implements Observer {
     private Image thunderstormImage;
     private Image passengerImage;
 
-    public TerritoryPane(Territory territory) {
+    public TerritoryPane(Territory territory, ExceptionObservable exceptionObservable) {
         this.territory = territory;
         this.canvas = new Canvas(territory.getWidth() * CELL_SIZE, territory.getHeight() * CELL_SIZE);
 
@@ -36,20 +36,17 @@ public class TerritoryPane extends Region implements Observer {
         loadImages();
         draw();
 
-        TerritoryEventHandler territoryEventHandler = new TerritoryEventHandler(territory, this);
+        TerritoryEventHandler territoryEventHandler = new TerritoryEventHandler(territory, this, exceptionObservable);
         this.canvas.setOnMousePressed(territoryEventHandler);
         this.canvas.setOnMouseDragged(territoryEventHandler);
         this.canvas.setOnMouseReleased(territoryEventHandler);
-        this.canvas.setOnContextMenuRequested(new TerritoryContextMenuHandler(territory, this));
+        this.canvas.setOnContextMenuRequested(new TerritoryContextMenuHandler(territory, this, exceptionObservable));
     }
 
     @Override
     public void update(Observable o, Object arg) {
-        if (Platform.isFxApplicationThread()) {
-            updateView(o);
-        } else {
-            Platform.runLater(() -> updateView(o));
-        }
+        ViewUtils.runOnPlatform(() -> updateView(o));
+
     }
 
     private void updateView(Observable o) {

@@ -7,9 +7,15 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.TextInputDialog;
 import model.exception.InvalidProgramNameException;
 import model.exception.ProgramAlreadyOpenException;
+import utils.ViewUtils;
 
 import java.util.Optional;
 
+/**
+ * Event handler for the opening of a new window.
+ *
+ * @param <T> the type of the event
+ */
 public class NewWindowEventHandler<T extends Event> implements EventHandler<T> {
 
     @Override
@@ -25,19 +31,15 @@ public class NewWindowEventHandler<T extends Event> implements EventHandler<T> {
             try {
                 ProgramController.createNewProgram(name);
             } catch (ProgramAlreadyOpenException e) {
-                Alert alert = new Alert(Alert.AlertType.WARNING);
-                alert.setTitle("Programm bereits geöffnet");
-                alert.setHeaderText(null);
-                alert.setContentText("Das Programm ist bereits geöffnet");
-
-                alert.showAndWait();
+                ViewUtils.showAlert(Alert.AlertType.ERROR,
+                        "Programm bereits geöffnet",
+                        null,
+                        e.getMessage());
             } catch (InvalidProgramNameException e) {
-                Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.setTitle("Invalider Name");
-                alert.setHeaderText(null);
-                alert.setContentText("Der gegebene Name ist kein valider Java-Bezeichner");
-
-                alert.showAndWait();
+                ViewUtils.showAlert(Alert.AlertType.ERROR,
+                        "Invalider Name",
+                        null,
+                        e.getMessage());
             }
         });
     }

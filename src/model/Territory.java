@@ -11,7 +11,8 @@ import java.util.Arrays;
 import java.util.Observable;
 
 /**
- * Contains methods and fields for the whole territory
+ * Contains methods and fields for the whole territory.
+ * Some methods are synchronized because they may get accessed by the Java FX Application thread and the custom simulations.
  */
 public class Territory extends Observable {
 
@@ -158,6 +159,7 @@ public class Territory extends Observable {
                 throw new IllegalSizeException(1, 100);
             }
 
+            // Sets the plane to the starting coordinates to assure it is not out of bounds
             if (this.plane.getX() >= newWidth || this.plane.getY() >= newHeight) {
                 this.plane.setX(0);
                 this.plane.setY(0);
@@ -173,6 +175,7 @@ public class Territory extends Observable {
                 try {
                     newTiles[y] = Arrays.copyOf(tiles[y], newWidth);
                 } catch (NullPointerException | ArrayIndexOutOfBoundsException e) {
+                    // Happens when the new territory is smaller than the old one
                     newTiles[y] = new int[newWidth];
                 }
             }
@@ -321,6 +324,9 @@ public class Territory extends Observable {
         return tiles[y][x] == THUNDERSTORM;
     }
 
+    /**
+     * A tile of the territory
+     */
     public static class Tile {
         private final int x;
         private final int y;

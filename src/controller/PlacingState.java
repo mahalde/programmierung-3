@@ -2,6 +2,9 @@ package controller;
 
 import java.util.Observable;
 
+/**
+ * The state of the things which can be placed
+ */
 public class PlacingState extends Observable {
 
     public enum State {

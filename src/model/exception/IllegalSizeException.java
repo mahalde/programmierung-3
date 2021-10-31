@@ -1,5 +1,8 @@
 package model.exception;
 
+/**
+ * Gets thrown when an illegal size is given when changing sizes of the territory
+ */
 public class IllegalSizeException extends SimulatorException {
 
     public IllegalSizeException(int min, int max) {

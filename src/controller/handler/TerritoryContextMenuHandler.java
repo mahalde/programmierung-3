@@ -1,5 +1,6 @@
 package controller.handler;
 
+import controller.ExceptionObservable;
 import javafx.event.EventHandler;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
@@ -19,15 +20,20 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Event handler for the opening of the context menu when clicking on the plane in the territory
+ */
 public class TerritoryContextMenuHandler implements EventHandler<ContextMenuEvent> {
 
     private final Territory territory;
     private final TerritoryPane territoryPane;
+    private final ExceptionObservable exceptionObservable;
     private final ContextMenu contextMenu;
 
-    public TerritoryContextMenuHandler(Territory territory, TerritoryPane territoryPane) {
+    public TerritoryContextMenuHandler(Territory territory, TerritoryPane territoryPane, ExceptionObservable exceptionObservable) {
         this.territory = territory;
         this.territoryPane = territoryPane;
+        this.exceptionObservable = exceptionObservable;
         this.contextMenu = new ContextMenu();
     }
 
@@ -47,12 +53,14 @@ public class TerritoryContextMenuHandler implements EventHandler<ContextMenuEven
             Method method = (Method) menuItem.getUserData();
 
             try {
+                // Set accessibility to true to access the method
                 method.setAccessible(true);
                 method.invoke(territory.getPlane());
                 method.setAccessible(false);
             } catch (IllegalAccessException | InvocationTargetException e) {
                 if (e.getCause() instanceof SimulatorException) {
                     Sound.death();
+                    this.exceptionObservable.notifyAboutException(e.getCause());
                 } else {
                     e.printStackTrace();
                 }
@@ -60,6 +68,13 @@ public class TerritoryContextMenuHandler implements EventHandler<ContextMenuEven
         });
     }
 
+    /**
+     * Gets the methods from the given inheritant of the plane class and transform them into menu items.
+     * Filters out the main method, methods with @Invisible, static and private methods.
+     *
+     * @param plane the given inheritant
+     * @return a list of menu items which display the methods
+     */
     private List<MenuItem> getMethodsFromClass(Plane plane) {
         List<Method> methods = new ArrayList<>();
         Class<?> clazz = plane.getClass();
@@ -82,22 +97,53 @@ public class TerritoryContextMenuHandler implements EventHandler<ContextMenuEven
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Returns whether the method is not named "main".
+     *
+     * @param method the given method
+     * @return true if the method is not named "main"
+     */
     private boolean isNotMainMethod(Method method) {
         return !method.getName().equals("main");
     }
 
+    /**
+     * Returns whether the method is not annotated with @Invisible.
+     *
+     * @param method the given method
+     * @return true if the method is not annotated with @Invisible
+     */
     private boolean isNotInvisible(Method method) {
         return !method.isAnnotationPresent(Invisible.class);
     }
 
+    /**
+     * Returns whether the method is not static.
+     *
+     * @param method the given method
+     * @return true if the method is not static
+     */
     private boolean isNotStatic(Method method) {
         return !Modifier.isStatic(method.getModifiers());
     }
 
+    /**
+     * Returns whether the method is not private.
+     *
+     * @param method the given method
+     * @return true if the method is not private
+     */
     private boolean isNotPrivate(Method method) {
         return !Modifier.isPrivate(method.getModifiers());
     }
 
+    /**
+     * Maps a method into a menu item, providing the return type, name and parameter types as text
+     * and the actual method as custom user data.
+     *
+     * @param method the given method
+     * @return a menu item
+     */
     private MenuItem mapToMenuItem(Method method) {
         MenuItem menuItem = new MenuItem();
         StringBuilder stringBuilder = new StringBuilder();

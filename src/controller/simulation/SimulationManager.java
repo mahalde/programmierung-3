@@ -1,21 +1,28 @@
 package controller.simulation;
 
+import controller.ExceptionObservable;
 import model.Territory;
 
 import java.util.Observable;
 
+/**
+ * Handles the management of a single simulation
+ */
 public class SimulationManager extends Observable {
 
     private Simulation simulation;
     private final Territory territory;
     private final SimulationState state;
+    private final ExceptionObservable exceptionObservable;
     private int speed;
 
-    public SimulationManager(Territory territory) {
+    public SimulationManager(Territory territory, ExceptionObservable exceptionObservable) {
         this.territory = territory;
         this.state = new SimulationState();
+        this.exceptionObservable = exceptionObservable;
     }
 
+    /** Max speed of the simulation measured in milliseconds */
     private static final int MAX_SPEED = 1100;
 
     public int getSpeed() {
@@ -37,7 +44,7 @@ public class SimulationManager extends Observable {
     public void start() {
         if (this.simulation != null) return;
 
-        this.simulation = new Simulation(this.territory, this);
+        this.simulation = new Simulation(this.territory, this, this.exceptionObservable);
         this.simulation.startSimulation();
         this.state.setSelected(SimulationState.State.STARTED);
 

@@ -7,6 +7,9 @@ import javafx.scene.control.ToggleButton;
 import java.util.Observable;
 import java.util.Observer;
 
+/**
+ * Custom toggle buttons to change the simulation state in the toolbar
+ */
 public class SimulatorStateToggleButton extends ToggleButton implements Observer {
 
     private final SimulationState.State state;

@@ -1,5 +1,6 @@
 package controller.simulation;
 
+import controller.ExceptionObservable;
 import javafx.application.Platform;
 import model.Plane;
 import model.Territory;
@@ -9,19 +10,25 @@ import view.Sound;
 import java.util.Observable;
 import java.util.Observer;
 
+/**
+ * Simulation which can be started, stopped or paused.
+ * Contains the java code which is written in the textbox as runnable code.
+ */
 public class Simulation extends Thread implements Observer {
 
     private final Territory territory;
     private final Plane plane;
     private final SimulationManager simulationManager;
+    private final ExceptionObservable exceptionObservable;
     private final Object syncObject = new Object();
     private boolean paused = true;
     private boolean stopped = false;
 
-    public Simulation(Territory territory, SimulationManager simulationManager) {
+    public Simulation(Territory territory, SimulationManager simulationManager, ExceptionObservable exceptionObservable) {
         this.territory = territory;
         this.plane = territory.getPlane();
         this.simulationManager = simulationManager;
+        this.exceptionObservable = exceptionObservable;
     }
 
     public void startSimulation() {
@@ -61,6 +68,7 @@ public class Simulation extends Thread implements Observer {
         } catch (SimulatorStoppedException ignored) {
         } catch (SimulatorException exception) {
             Sound.death();
+            this.exceptionObservable.notifyAboutException(exception);
         } catch (Throwable e) {
             Sound.death();
             e.printStackTrace();
@@ -73,6 +81,8 @@ public class Simulation extends Thread implements Observer {
     @Override
     public void update(Observable o, Object arg) {
         try {
+            // It is possible that the thread which updates the territory is the fx application thread
+            // which should not be put to sleep
             if (!Platform.isFxApplicationThread()) {
                 Thread.sleep(simulationManager.getSpeed());
             }

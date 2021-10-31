@@ -8,6 +8,9 @@ import javafx.scene.control.RadioMenuItem;
 import java.util.Observable;
 import java.util.Observer;
 
+/**
+ * Custom radio menu item to choose the current item to place in the menues
+ */
 public class PlacingStateRadioMenuItem extends RadioMenuItem implements Observer {
 
     private final PlacingState.State state;

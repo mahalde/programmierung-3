@@ -15,6 +15,10 @@ import model.Territory;
 
 import java.util.Optional;
 
+/**
+ * Event handler for the size changing of the territory.
+ * @param <T> the type of the event
+ */
 public class ChangeSizeEventHandler<T extends Event> implements EventHandler<T> {
 
     private final Territory territory;

@@ -13,6 +13,11 @@ import utils.ViewUtils;
 
 import java.io.File;
 
+/**
+ * Event handler for openening an existing file.
+ *
+ * @param <T> the type of the event
+ */
 public class OpenFileEventHandler<T extends Event> implements EventHandler<T> {
 
     @Override

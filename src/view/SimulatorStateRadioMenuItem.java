@@ -8,6 +8,9 @@ import javafx.scene.control.RadioMenuItem;
 import java.util.Observable;
 import java.util.Observer;
 
+/**
+ * Custom radio menu item to change the simulation state in the menues
+ */
 public class SimulatorStateRadioMenuItem extends RadioMenuItem implements Observer {
 
     private final SimulationState.State state;

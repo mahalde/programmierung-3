@@ -1,14 +1,18 @@
 package controller.handler;
 
-import controller.simulation.SimulationManager;
-import controller.simulation.SimulationState;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.scene.control.Alert;
 import model.Plane;
 import model.Territory;
 import model.exception.SimulatorException;
+import utils.ViewUtils;
 
+/**
+ * Handles click events for the toolbar buttons which manouver the plane
+ *
+ * @param <T> the type of the event
+ */
 public class ButtonClickEventHandler<T extends Event> implements EventHandler<T> {
 
     public enum Action {
@@ -32,11 +36,10 @@ public class ButtonClickEventHandler<T extends Event> implements EventHandler<T>
         Plane plane = territory.getPlane();
         switch (action) {
             case PASSENGERS_IN_PLANE:
-                Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                alert.setHeaderText(null);
-                alert.setContentText("Passagiere im Flugzeug: " + territory.getNumberOfPlanePassengers());
-
-                alert.showAndWait();
+                ViewUtils.showAlert(Alert.AlertType.INFORMATION,
+                        "Passagiere im Flugzeug",
+                        null,
+                        "Passagiere im Flugzeug: " + territory.getNumberOfPlanePassengers());
                 break;
             case LEFT:
                 plane.linksUm();

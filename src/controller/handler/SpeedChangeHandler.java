@@ -4,6 +4,9 @@ import controller.simulation.SimulationManager;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 
+/**
+ * Event handler for the change of the simulation speed
+ */
 public class SpeedChangeHandler implements ChangeListener<Number> {
 
     public static final int INITIAL_SPEED = 50;
